@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using audiobookshelf.Properties;
 using System.IO;
+using System.Net.Http;
 
 namespace audiobookshelf
 {
@@ -16,6 +17,8 @@ namespace audiobookshelf
 
         private ToolStripMenuItem StopServerToolStripMenuItem;
         private ToolStripMenuItem StartServerToolStripMenuItem;
+
+        private HttpClient client = new HttpClient();
 
         public TrayOnly()
         {
@@ -63,11 +66,6 @@ namespace audiobookshelf
         void StartServer(object? sender, EventArgs e)
         {
             startService();
-        }
-
-        void VersionCheck(object? sender, EventArgs e)
-        {
-            Debug.WriteLine("Version Check");
         }
 
         void Open(object? sender, EventArgs e)
