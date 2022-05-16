@@ -13,6 +13,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="AppIcon.ico" />
+    <None Remove="Resources\AppIcon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="AppIcon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <Resource Include="Resources\AppIcon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
