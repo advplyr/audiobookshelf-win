@@ -27,7 +27,7 @@ namespace audiobookshelf
 
             trayIcon = new NotifyIcon()
             {
-                Icon = Resources.AppIcon,
+               // Icon = Resources.AppIcon,
                 ContextMenuStrip = new ContextMenuStrip()
                 {
                     Items = {
