@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="AppIcon.ico" />
+    <Resource Include="AppIcon.ico" />
   </ItemGroup>
 
   <ItemGroup>
