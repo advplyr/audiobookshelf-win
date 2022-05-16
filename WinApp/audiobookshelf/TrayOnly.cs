@@ -115,7 +115,7 @@ namespace audiobookshelf
                 string metadataPath = Path.Combine(absDataPath, "metadata");
 
                 ProcessStartInfo start = new ProcessStartInfo();
-                start.Arguments = "-p " + PORT + " --config " + configPath + " --metadata " + metadataPath;
+                start.Arguments = "-p " + PORT + " --config " + configPath + " --metadata " + metadataPath + " --source windows";
                 start.FileName = absServerPath;
 
                 start.WindowStyle = ProcessWindowStyle.Hidden;
