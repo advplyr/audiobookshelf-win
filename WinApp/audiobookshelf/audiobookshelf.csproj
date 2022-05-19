@@ -12,6 +12,27 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Resources\**" />
+    <EmbeddedResource Remove="Resources\**" />
+    <None Remove="Resources\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="ChildProcessTracker.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="audiobookshelf.cpp" />
+    <None Remove="audiobookshelf.h" />
+    <None Remove="audiobookshelf.rc" />
+    <None Remove="audiobookshelf.vcxproj.filters" />
+    <None Remove="framework.h" />
+    <None Remove="RCa20332" />
+    <None Remove="Resource.h" />
+    <None Remove="targetver.h" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="AppIcon.ico" />
   </ItemGroup>
 
@@ -29,9 +50,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="audiobookshelf.cpp">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
