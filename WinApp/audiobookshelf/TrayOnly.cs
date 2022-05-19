@@ -3,26 +3,24 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using audiobookshelf.Properties;
 using System.IO;
-using System.Net.Http;
 
 namespace audiobookshelf
 {
     public class TrayOnly : ApplicationContext
     {
-        private readonly string PORT = "13378";
         public Process ab = null;
-        private NotifyIcon trayIcon;
-        private string absDataPath = "";
-        private string absServerPath = "";
 
-        private ToolStripMenuItem StopServerToolStripMenuItem;
-        private ToolStripMenuItem StartServerToolStripMenuItem;
-
-        private HttpClient client = new HttpClient();
+        private readonly NotifyIcon trayIcon;
+        private readonly string PORT = "13378";
+        private readonly string absDataPath;
+        private readonly string appFolderName = "audiobookshelf";
+        private readonly string absServerFilename = "server.exe";
+        private readonly ToolStripMenuItem StopServerToolStripMenuItem;
+        private readonly ToolStripMenuItem StartServerToolStripMenuItem;
 
         public TrayOnly()
         {
-            StopServerToolStripMenuItem = new ToolStripMenuItem("Stop Server", null, StopServer);
+            StopServerToolStripMenuItem = new ToolStripMenuItem("Stop Server", null, StopServer) { Enabled = false };
             StartServerToolStripMenuItem = new ToolStripMenuItem("Start Server", null, StartServer);
 
             trayIcon = new NotifyIcon()
@@ -31,68 +29,68 @@ namespace audiobookshelf
                 ContextMenuStrip = new ContextMenuStrip()
                 {
                     Items = {
-                        new ToolStripMenuItem("Quit", null, Exit),
-                        new ToolStripMenuItem("Open Web App", null, Open)
+                        StopServerToolStripMenuItem,
+                        StartServerToolStripMenuItem,
+                        new ToolStripSeparator(),
+                        new ToolStripMenuItem("Open Web App", null, Open),
+                        new ToolStripMenuItem("Quit", null, Exit)
                     }
                 },
                 Visible = true
             };
+            
+            trayIcon.DoubleClick += Open;
 
-            trayIcon.DoubleClick += OpenOrAlert; 
-
-            string localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            absDataPath = Path.Combine(localAppDataPath, "audiobookshelf");
+            //trayIcon.DoubleClick += OpenOrAlert;
+            absDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), appFolderName);
+            
             Debug.WriteLine("Abs Data Path = " + absDataPath);
-
-            absServerPath = Path.Combine(absDataPath, "server.exe");
-            File.WriteAllBytes(absServerPath, Properties.Resources.audiobookshelf);
-            Debug.WriteLine("Server written to " + absServerPath);
-
-            startService();
         }
 
-        void Exit(object? sender, EventArgs e)
+        public void Exit(object sender, EventArgs e)
         {
             stopService();
             trayIcon.Visible = false;
             Application.Exit();
         }
 
-        void StopServer(object? sender, EventArgs e)
+        public void StopServer(object sender, EventArgs e)
         {
             stopService();
         }
 
-        void StartServer(object? sender, EventArgs e)
+        public void StartServer(object sender, EventArgs e)
         {
             startService();
         }
 
-        void Open(object? sender, EventArgs e)
+        public void Open(object sender, EventArgs e)
         {
+            // Server already started, 
             if (ab != null)
             {
+                // just open the browser.
                 openBrowser(PORT);
+            }
+            
+            // Server not started, 
+            else
+            {
+                // ask master if we should start it.
+                if (MessageBox.Show("Server not started, start server?", "Audiobookshelf", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+                {
+                    // Lets do what our master told us to do.
+                    startService();
+                };
             }
         }
 
-        void OpenOrAlert(object? sender, EventArgs e)
+        private void stopService()
         {
             if (ab != null)
             {
-                openBrowser(PORT);
-            } else
-            {
-                MessageBox.Show("Server not started", "Audiobookshelf", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        void stopService()
-        {
-            if (ab != null)
-            {
-                trayIcon.ContextMenuStrip.Items.Add(StartServerToolStripMenuItem);
-                trayIcon.ContextMenuStrip.Items.Remove(StopServerToolStripMenuItem);
+                StopServerToolStripMenuItem.Enabled = false;
+                StartServerToolStripMenuItem.Enabled = true;
 
                 ab.Kill();
                 ab = null;
@@ -101,47 +99,46 @@ namespace audiobookshelf
             }
         }
 
-        public void startService()
+        private void startService()
         {
-            if (ab != null)
-            {
-                stopService();
-            }
-            else
+            if (ab == null)
             {
                 Debug.WriteLine("Starting service");
 
                 string configPath = Path.Combine(absDataPath, "config");
                 string metadataPath = Path.Combine(absDataPath, "metadata");
 
-                ProcessStartInfo start = new ProcessStartInfo();
-                start.Arguments = "-p " + PORT + " --config " + configPath + " --metadata " + metadataPath + " --source windows";
-                start.FileName = absServerPath;
+                ab = new Process
+                {
+                    StartInfo = new ProcessStartInfo()
+                    {
+                        Arguments = "-p " + PORT + " --config " + configPath + " --metadata " + metadataPath + " --source windows",
+                        FileName = Path.Combine(absDataPath, absServerFilename),
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true
+                    },
+                    EnableRaisingEvents = true
+                };
 
-                start.WindowStyle = ProcessWindowStyle.Hidden;
-                start.RedirectStandardOutput = true;
-                start.CreateNoWindow = true;
+                // Why?
+                //ab.OutputDataReceived += new DataReceivedEventHandler(OuputHandler);
 
-                ab = new Process();
-                ab.StartInfo = start;
-                ab.EnableRaisingEvents = true;
-
-                ab.OutputDataReceived += new DataReceivedEventHandler(OuputHandler);
-
+                // Start the ABS Server process.
                 ab.Start();
 
-                // Make sure ab server process gets stopped even if parent is killed
-                ChildProcessTracker.AddProcess(ab);
+                // Is this even needed???? Make sure ab server process gets stopped even if parent is killed
+                //ChildProcessTracker.AddProcess(ab);
 
-                ab.BeginOutputReadLine();
+                // Why?
+                //ab.BeginOutputReadLine();
 
-                trayIcon.ShowBalloonTip(500, "Audiobookshelf", "Server started | Click to open browser", ToolTipIcon.Info);
+                // Show an alert that we started the server.
+                trayIcon.ShowBalloonTip(500, "Audiobookshelf", "Server started", ToolTipIcon.Info);
 
-                trayIcon.BalloonTipClicked += Open;
-
-
-                trayIcon.ContextMenuStrip.Items.Remove(StartServerToolStripMenuItem);
-                trayIcon.ContextMenuStrip.Items.Add(StopServerToolStripMenuItem);
+                // Fix up the context menu stuff
+                StartServerToolStripMenuItem.Enabled = false;
+                StopServerToolStripMenuItem.Enabled = true;
             }
         }
 
@@ -155,12 +152,12 @@ namespace audiobookshelf
             Process.Start(psInfo);
         }
 
-
-        private void OuputHandler(object sendingProcess, DataReceivedEventArgs outLine)
-        {
-            // Console.WriteLine(outLine.Data);
-            Debug.WriteLine(outLine.Data);
-        }
+        // Why??
+        //private void OuputHandler(object sendingProcess, DataReceivedEventArgs outLine)
+        //{
+        //    // Console.WriteLine(outLine.Data);
+        //    Debug.WriteLine(outLine.Data);
+        //}
     }
 
 }
