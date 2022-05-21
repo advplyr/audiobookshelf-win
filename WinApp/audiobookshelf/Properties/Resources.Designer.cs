@@ -69,15 +69,5 @@ namespace audiobookshelf.Properties {
                 return ((System.Drawing.Icon)(obj));
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] audiobookshelf {
-            get {
-                object obj = ResourceManager.GetObject("audiobookshelf", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
     }
 }
