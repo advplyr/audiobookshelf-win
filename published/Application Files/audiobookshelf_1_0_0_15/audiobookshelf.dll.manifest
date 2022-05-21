@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <asmv1:assembly xsi:schemaLocation="urn:schemas-microsoft-com:asm.v1 assembly.adaptive.xsd" manifestVersion="1.0" xmlns:asmv1="urn:schemas-microsoft-com:asm.v1" xmlns="urn:schemas-microsoft-com:asm.v2" xmlns:asmv2="urn:schemas-microsoft-com:asm.v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:co.v1="urn:schemas-microsoft-com:clickonce.v1" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" xmlns:co.v2="urn:schemas-microsoft-com:clickonce.v2">
-  <asmv1:assemblyIdentity name="audiobookshelf.exe" version="1.0.0.12" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" type="win32" />
+  <asmv1:assemblyIdentity name="audiobookshelf.exe" version="1.0.0.15" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" type="win32" />
   <description asmv2:iconFile="AppIcon.ico" xmlns="urn:schemas-microsoft-com:asm.v1" />
   <application />
   <entryPoint>
@@ -72,22 +72,22 @@
       <dsig:DigestValue>xGuWnz10X5eJtw6sV/1+oTx6Uty6Y5ADgk0lQ5I8+0M=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="audiobookshelf.dll" size="29184">
+  <file name="audiobookshelf.dll" size="28672">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>3sCvP3TbPTEYeyUPNEsqB9j9jvywmgD9EMFIRd+gvLA=</dsig:DigestValue>
+      <dsig:DigestValue>DM7rX9y1OjsrSAuLBioFAROPVKFQQk7OIbwb0LFXsO4=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="audiobookshelf.exe" size="153600">
+  <file name="audiobookshelf.exe" size="153088">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>nppjQFfk0Ftts9BWPyVnngbP3nVpICSbnmaHpGP2FxE=</dsig:DigestValue>
+      <dsig:DigestValue>uaPrJyVjjDomyt0Sb6Nq7RAzeuO0HxkeYCiayeC5hRk=</dsig:DigestValue>
     </hash>
   </file>
   <file name="audiobookshelf.runtimeconfig.json" size="372">
@@ -97,15 +97,6 @@
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
       <dsig:DigestValue>HsoPDHAHCqg7tgnkt0mybctECXhDJgMnJjlHIiJKCYo=</dsig:DigestValue>
-    </hash>
-  </file>
-  <file name="Icon.png" size="9630">
-    <hash>
-      <dsig:Transforms>
-        <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
-      </dsig:Transforms>
-      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>1jmwoXD9pJ0Pg4QoZYsGiCCV4SttHjPJMij7joO43ns=</dsig:DigestValue>
     </hash>
   </file>
   <file name="Octokit.dll" size="1032704">
