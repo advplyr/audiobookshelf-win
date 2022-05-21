@@ -6,6 +6,7 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Octokit;
+using System.Collections.Generic;
 
 namespace audiobookshelf
 {
@@ -19,6 +20,7 @@ namespace audiobookshelf
     public class TrayOnly : ApplicationContext
     {
         public Process ab = null;
+        public ServerLogs serverLogsForm = null;
 
         private readonly NotifyIcon trayIcon;
         private readonly string PORT = "13378";
@@ -28,10 +30,11 @@ namespace audiobookshelf
         private readonly ToolStripMenuItem StopServerToolStripMenuItem;
         private readonly ToolStripMenuItem StartServerToolStripMenuItem;
         private readonly ToolStripMenuItem OpenWebToolStripMenuItem;
+        private readonly ToolStripMenuItem ServerLogsToolStripMenuItem;
         private readonly ToolStripLabel VersionToolStripLabel;
         private readonly string absServerPath;
 
-        private string currentServerVersion = null;
+        private List<string> serverLogList = new List<string>();
 
         public TrayOnly()
         {
@@ -40,6 +43,7 @@ namespace audiobookshelf
 
             StopServerToolStripMenuItem = new ToolStripMenuItem("Stop Server", null, StopServer) { Enabled = false };
             StartServerToolStripMenuItem = new ToolStripMenuItem("Start Server", null, StartServer) { Enabled = false };
+            ServerLogsToolStripMenuItem = new ToolStripMenuItem("Server Logs", null, ShowServerLogs) { Enabled = true };
             OpenWebToolStripMenuItem = new ToolStripMenuItem("Open Web App", null, Open) { Enabled = false };
 
 
@@ -54,6 +58,7 @@ namespace audiobookshelf
                         new ToolStripSeparator(),
                         StopServerToolStripMenuItem,
                         StartServerToolStripMenuItem,
+                        ServerLogsToolStripMenuItem,
                         new ToolStripSeparator(),
                         OpenWebToolStripMenuItem,
                         new ToolStripMenuItem("Quit", null, Exit)
@@ -63,6 +68,7 @@ namespace audiobookshelf
             };
             
             trayIcon.DoubleClick += Open;
+            trayIcon.BalloonTipClicked += BalloonTipClicked;
 
             absDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), appFolderName);
             absServerPath = Path.Combine(absDataPath, absServerFilename);
@@ -73,7 +79,7 @@ namespace audiobookshelf
 
         private async void init()
         {
-            currentServerVersion = Settings.Default.ServerVersion;
+            string currentServerVersion = Settings.Default.ServerVersion;
 
             Debug.WriteLine(format: "Current server version downloaded is {0}", currentServerVersion);
 
@@ -101,7 +107,7 @@ namespace audiobookshelf
                 } else if (currentServerVersion != cliAsset.tag)
                 {
                     Debug.WriteLine(format: "Update is available for server to {0} from current {1}", cliAsset.tag, currentServerVersion);
-                    if (MessageBox.Show(String.Format("Server update is available to {0}. Install?", cliAsset.tag), "Audiobookshelf", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+                    if (MessageBox.Show(string.Format("Server update is available to {0}. Do you want to update?", cliAsset.tag), "Audiobookshelf", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
                     {
                         downloadServerCli(cliAsset);
                         return;
@@ -116,6 +122,9 @@ namespace audiobookshelf
             VersionToolStripLabel.IsLink = true;
             OpenWebToolStripMenuItem.Enabled = true;
             StartServerToolStripMenuItem.Enabled = true;
+
+            // Start server
+            startService();
         }
 
         public void Exit(object sender, EventArgs e)
@@ -141,7 +150,7 @@ namespace audiobookshelf
             if (ab != null)
             {
                 // just open the browser.
-                openBrowser(PORT);
+                openBrowser();
             }
             
             // Server not started, 
@@ -168,15 +177,26 @@ namespace audiobookshelf
             {
                 Debug.WriteLine(format: "Got latest release server for {0}", cliAsset.tag);
 
-                if (currentServerVersion != cliAsset.tag)
+                if (Settings.Default.ServerVersion != cliAsset.tag)
                 {
-                    MessageBox.Show(string.Format("Server update is available to {0} from current {1}", cliAsset.tag, currentServerVersion));
+                    if (MessageBox.Show(string.Format("Server update is available to {0}. Do you want to update?", cliAsset.tag), "Audiobookshelf", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+                    {
+                        downloadServerCli(cliAsset);
+                        return;
+                    };
                 }
                 else
                 {
                     MessageBox.Show("Server is up-to-date!");
                 }
             }
+        }
+
+        public void ShowServerLogs(object sender, EventArgs e)
+        {
+            serverLogsForm = new ServerLogs();
+            serverLogsForm.Show();
+            serverLogsForm.setLogs(serverLogList);
         }
 
         public void OpenCurrentRelease(object sender, EventArgs e)
@@ -192,6 +212,11 @@ namespace audiobookshelf
             Process.Start(psInfo);
         }
 
+        public void BalloonTipClicked(object sender, EventArgs e)
+        {
+            openBrowser();
+        }
+
         private void stopService()
         {
             if (ab != null)
@@ -201,6 +226,7 @@ namespace audiobookshelf
 
                 ab.Kill();
                 ab = null;
+                
                 trayIcon.ShowBalloonTip(500, "Audiobookshelf", "Server stopped", ToolTipIcon.Info);
                 Debug.WriteLine("Killed process");
             }
@@ -228,17 +254,14 @@ namespace audiobookshelf
                     EnableRaisingEvents = true
                 };
 
-                // Why?
-                //ab.OutputDataReceived += new DataReceivedEventHandler(OuputHandler);
+                ab.OutputDataReceived += new DataReceivedEventHandler(OuputHandler);
+
+                ab.ErrorDataReceived += Ab_ErrorDataReceived;
 
                 // Start the ABS Server process.
                 ab.Start();
 
-                // Is this even needed???? Make sure ab server process gets stopped even if parent is killed
-                //ChildProcessTracker.AddProcess(ab);
-
-                // Why?
-                //ab.BeginOutputReadLine();
+                ab.BeginOutputReadLine();
 
                 // Show an alert that we started the server.
                 trayIcon.ShowBalloonTip(500, "Audiobookshelf", "Server started", ToolTipIcon.Info);
@@ -249,22 +272,40 @@ namespace audiobookshelf
             }
         }
 
-        private void openBrowser(string port)
+        private void Ab_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
+            Debug.WriteLine("Error Data Received " + e.Data);
+        }
+
+        private void openBrowser()
+        {
+            if (ab == null) return;
+
             ProcessStartInfo psInfo = new ProcessStartInfo
             {
-                FileName = "http://localhost:" + port,
+                FileName = "http://localhost:" + PORT,
                 UseShellExecute = true
             };
             Process.Start(psInfo);
         }
 
         // Why??
-        //private void OuputHandler(object sendingProcess, DataReceivedEventArgs outLine)
-        //{
-        //    // Console.WriteLine(outLine.Data);
-        //    Debug.WriteLine(outLine.Data);
-        //}
+        private void OuputHandler(object sendingProcess, DataReceivedEventArgs outLine)
+        {
+            if (outLine.Data == null || outLine.Data == "")
+            {
+                return;
+            }
+
+            Debug.WriteLine(outLine.Data);
+            serverLogList.Add(outLine.Data);
+
+            if (serverLogsForm != null && !serverLogsForm.IsDisposed)
+            {
+                // Server logs form is open add line
+                serverLogsForm.addLogLine(outLine.Data);
+            }
+        }
 
 
         // Get latest release with server cli download url
@@ -300,7 +341,7 @@ namespace audiobookshelf
 
         private async void downloadServerCli(ReleaseCliAsset releaseCliAsset)
         {
-            if (ab != null) // Stop server is started
+            if (ab != null) // Stop server if started
             {
                 stopService();
             }
@@ -328,6 +369,9 @@ namespace audiobookshelf
                 setVersionTooltip();
                 StartServerToolStripMenuItem.Enabled = true;
                 OpenWebToolStripMenuItem.Enabled = true;
+
+                // Start server
+                startService();
             } else
             {
                 MessageBox.Show(
@@ -340,7 +384,7 @@ namespace audiobookshelf
 
         private void setVersionTooltip()
         {
-            VersionToolStripLabel.Text = Settings.Default.ServerVersion;
+            VersionToolStripLabel.Text = "Server " + Settings.Default.ServerVersion;
             VersionToolStripLabel.IsLink = true;
  
         }
