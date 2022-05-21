@@ -30,13 +30,16 @@
     <None Remove="audiobookshelf.rc" />
     <None Remove="audiobookshelf.vcxproj.filters" />
     <None Remove="framework.h" />
+    <None Remove="Icon.png" />
     <None Remove="RCa20332" />
     <None Remove="Resource.h" />
     <None Remove="targetver.h" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="AppIcon.ico">
+    <Content Include="Icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -59,9 +62,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Icon.png">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
+    <None Update="AppIcon.ico">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
