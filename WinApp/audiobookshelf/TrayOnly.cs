@@ -28,15 +28,20 @@ namespace audiobookshelf
         private readonly ToolStripMenuItem StopServerToolStripMenuItem;
         private readonly ToolStripMenuItem StartServerToolStripMenuItem;
         private readonly ToolStripMenuItem OpenWebToolStripMenuItem;
+        private readonly ToolStripLabel VersionToolStripLabel;
         private readonly string absServerPath;
 
         private string currentServerVersion = null;
 
         public TrayOnly()
         {
+            VersionToolStripLabel = new ToolStripLabel("Server Not Installed", null, false, OpenCurrentRelease);
+            VersionToolStripLabel.Font = new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold);
+
             StopServerToolStripMenuItem = new ToolStripMenuItem("Stop Server", null, StopServer) { Enabled = false };
             StartServerToolStripMenuItem = new ToolStripMenuItem("Start Server", null, StartServer) { Enabled = false };
             OpenWebToolStripMenuItem = new ToolStripMenuItem("Open Web App", null, Open) { Enabled = false };
+
 
             trayIcon = new NotifyIcon()
             {
@@ -44,6 +49,7 @@ namespace audiobookshelf
                 ContextMenuStrip = new ContextMenuStrip()
                 {
                     Items = {
+                        VersionToolStripLabel,
                         new ToolStripMenuItem("Check for Server Update", null, CheckForServerUpdate),
                         new ToolStripSeparator(),
                         StopServerToolStripMenuItem,
@@ -106,6 +112,8 @@ namespace audiobookshelf
                 }
             }
 
+            setVersionTooltip();
+            VersionToolStripLabel.IsLink = true;
             OpenWebToolStripMenuItem.Enabled = true;
             StartServerToolStripMenuItem.Enabled = true;
         }
@@ -169,6 +177,19 @@ namespace audiobookshelf
                     MessageBox.Show("Server is up-to-date!");
                 }
             }
+        }
+
+        public void OpenCurrentRelease(object sender, EventArgs e)
+        {
+            string currentVersion = Settings.Default.ServerVersion;
+            if (currentVersion == null || currentVersion == "") return;
+
+            ProcessStartInfo psInfo = new ProcessStartInfo
+            {
+                FileName = "https://github.com/advplyr/audiobookshelf/releases/tag/" + currentVersion,
+                UseShellExecute = true
+            };
+            Process.Start(psInfo);
         }
 
         private void stopService()
@@ -279,6 +300,11 @@ namespace audiobookshelf
 
         private async void downloadServerCli(ReleaseCliAsset releaseCliAsset)
         {
+            if (ab != null) // Stop server is started
+            {
+                stopService();
+            }
+
             string downloadUrl = releaseCliAsset.downloadUrl;
             Debug.WriteLine("Starting server dl url " + downloadUrl);
 
@@ -293,12 +319,13 @@ namespace audiobookshelf
 
             if (response.IsSuccessStatusCode)
             {
-                MessageBox.Show("Download Complete for " + releaseCliAsset.tag);
+                trayIcon.ShowBalloonTip(500, "Audiobookshelf", String.Format("Server {0} downloaded successfully", releaseCliAsset.tag), ToolTipIcon.Info);
 
                 // Save latest server version in user settings
                 Settings.Default.ServerVersion = releaseCliAsset.tag;
                 Settings.Default.Save();
 
+                setVersionTooltip();
                 StartServerToolStripMenuItem.Enabled = true;
                 OpenWebToolStripMenuItem.Enabled = true;
             } else
@@ -309,6 +336,13 @@ namespace audiobookshelf
                    MessageBoxButtons.OK,
                    MessageBoxIcon.Error);
             }
+        }
+
+        private void setVersionTooltip()
+        {
+            VersionToolStripLabel.Text = Settings.Default.ServerVersion;
+            VersionToolStripLabel.IsLink = true;
+ 
         }
     }
 

@@ -1,0 +1,41 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v6.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v6.0": {
+      "audiobookshelf/1.0.0": {
+        "dependencies": {
+          "Octokit": "0.51.0"
+        },
+        "runtime": {
+          "audiobookshelf.dll": {}
+        }
+      },
+      "Octokit/0.51.0": {
+        "runtime": {
+          "lib/netstandard2.0/Octokit.dll": {
+            "assemblyVersion": "0.51.0.0",
+            "fileVersion": "0.51.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "audiobookshelf/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Octokit/0.51.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-p+8/X9y340TaqJCHGdizDqJ7EbAkGZU0cLeIgVByokdZs6I8VKXQ+f2g6992mMm5m+LHevTKcW5879AfrQ8nQg==",
+      "path": "octokit/0.51.0",
+      "hashPath": "octokit.0.51.0.nupkg.sha512"
+    }
+  }
+}
