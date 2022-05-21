@@ -71,6 +71,25 @@ namespace audiobookshelf
             trayIcon.BalloonTipClicked += BalloonTipClicked;
 
             absDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), appFolderName);
+           
+            // Create data path directory if does not exist
+            if (!Directory.Exists(absDataPath))
+            {
+                Debug.WriteLine("Creating data path at " + absDataPath);
+                try
+                {
+                    Directory.CreateDirectory(absDataPath);
+                }
+                catch (Exception e) {
+                    Debug.WriteLine(e.ToString());
+                    MessageBox.Show("Failed to create data path at " + absDataPath, "Audiobookshelf", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            } else
+            {
+                Debug.WriteLine("Abs data path already exists");
+            }
+
             absServerPath = Path.Combine(absDataPath, absServerFilename);
             Debug.WriteLine("Abs Data Path = " + absDataPath);
 
